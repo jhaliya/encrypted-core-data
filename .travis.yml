@@ -1,5 +1,10 @@
 language: objective-c
 
+matrix:
+  include:
+    - xcode_sdk: iphonesimulator
+      xcode_scheme: Example-iOS
+
 script:
     - cd "exampleProjects/IncrementalStore"
     # 32-bit tests
@@ -7,3 +12,7 @@ script:
     # 64-bit tests
     - xctool -sdk iphonesimulator -scheme "Incremental Store Demo" clean test -destination "name=iPhone Retina (4-inch 64-bit)"
 
+before_install: 
+  - brew update
+  - brew unlink xctool
+  - brew install xctool
