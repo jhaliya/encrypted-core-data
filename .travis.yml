@@ -1,10 +1,5 @@
 language: objective-c
 
-matrix:
-  include:
-    - xcode_sdk: iphonesimulator
-      xcode_scheme: Example-iOS
-
 script:
     - cd "exampleProjects/IncrementalStore"
     # 32-bit tests
