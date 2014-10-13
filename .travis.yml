@@ -11,4 +11,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - brew install gcc48
+  - export CC=gcc-4.8
