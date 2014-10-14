@@ -1,5 +1,8 @@
 language: objective-c
 
+compiler:
+    - gcc
+
 script:
     - cd "exampleProjects/IncrementalStore"
     # 32-bit tests
@@ -11,4 +14,3 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - export CC=gcc-4.8
