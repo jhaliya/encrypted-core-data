@@ -11,4 +11,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - export CC=gcc
+  - gcc
