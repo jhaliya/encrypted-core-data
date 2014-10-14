@@ -11,4 +11,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - compgen -A builtin gcc
+  - export CC=gcc-4.8
