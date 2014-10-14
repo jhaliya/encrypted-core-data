@@ -14,4 +14,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - bash -c "compgen -c | grep gcc"
+  - CC=clang ./configure
