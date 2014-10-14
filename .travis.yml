@@ -14,4 +14,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
-  - CC=clang ./configure
+  - export CC="clang ./configure"
