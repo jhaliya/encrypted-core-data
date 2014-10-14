@@ -14,3 +14,4 @@ before_install:
   - brew update
   - brew unlink xctool
   - brew install xctool
+  - gcc-4.8
