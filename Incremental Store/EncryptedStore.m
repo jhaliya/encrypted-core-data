@@ -4,9 +4,9 @@
 // Copyright 2012 - 2014 The MITRE Corporation, All Rights Reserved.
 //
 
-#if !__has_feature(objc_arc)
-#error This class requires ARC.
-#endif
+//#if !__has_feature(objc_arc)
+//#error This class requires ARC.
+//#endif
 
 #import <sqlite3.h>
 #import <objc/runtime.h>
@@ -82,7 +82,8 @@ static NSString * const EncryptedStoreMetadataTableName = @"meta";
     NSMutableDictionary *nodeCache;
     NSMutableDictionary *objectCountCache;
     NSMutableDictionary *entityTypeCache;
-    
+    NSDictionary *operators;
+  
 }
 
 + (NSPersistentStoreCoordinator *)makeStoreWithOptions:(NSDictionary *)options managedObjectModel:(NSManagedObjectModel *)objModel
@@ -165,10 +166,10 @@ static NSString * const EncryptedStoreMetadataTableName = @"meta";
                                  options:(NSDictionary *)options {
     self = [super initWithPersistentStoreCoordinator:root configurationName:name URL:URL options:options];
     if (self) {
-        objectIDCache = [NSMutableDictionary dictionary];
-        objectCountCache = [NSMutableDictionary dictionary];
-        nodeCache = [NSMutableDictionary dictionary];
-        entityTypeCache = [NSMutableDictionary dictionary];
+        objectIDCache = [[NSMutableDictionary alloc] initWithCapacity:1];
+        objectCountCache = [[NSMutableDictionary alloc] initWithCapacity:1];
+        nodeCache = [[NSMutableDictionary alloc] initWithCapacity:1];
+        entityTypeCache = [[NSMutableDictionary alloc] initWithCapacity:1];
         for (NSEntityDescription * entity in [[root managedObjectModel] entitiesForConfiguration:name]) {
             // TODO: should check for [entity isAbstract] and not add it to the cache
             if ([self entityNeedsEntityTypeColumn:entity]) {
@@ -368,13 +369,14 @@ static NSString * const EncryptedStoreMetadataTableName = @"meta";
 - (NSIncrementalStoreNode *)newValuesForObjectWithID:(NSManagedObjectID *)objectID
                                          withContext:(NSManagedObjectContext *)context
                                                error:(NSError **)error {
-    
+  
+  /*
     // cache hit
     {
         NSIncrementalStoreNode *node = [nodeCache objectForKey:objectID];
         if (node) { return node; }
     }
-    
+    */
     // prepare values
     NSEntityDescription *entity = [objectID entity];
     NSMutableArray *columns = [NSMutableArray array];
@@ -454,7 +456,7 @@ static NSString * const EncryptedStoreMetadataTableName = @"meta";
             [allProperties addObject:property];
         }];
         sqlite3_finalize(statement);
-        NSIncrementalStoreNode *node = [[CMDIncrementalStoreNode alloc]
+        __unsafe_unretained NSIncrementalStoreNode *node = [[CMDIncrementalStoreNode alloc]
                                         initWithObjectID:objectID
                                         withValues:dictionary
                                         version:1
@@ -1264,7 +1266,7 @@ static void dbsqliteRegExp(sqlite3_context *context, int argc, const char **argv
 
 - (NSArray *)handleSaveChangesRequest:(NSSaveChangesRequest *)request error:(NSError **)error {
     
-    NSMutableDictionary *localNodeCache = [nodeCache mutableCopy];
+    NSMutableDictionary *localNodeCache = [[NSMutableDictionary alloc] initWithDictionary:nodeCache];
     BOOL success = [self performInTransaction:^{
         BOOL insert = [self handleInsertedObjectsInSaveRequest:request error:error];
         BOOL update = [self handleUpdatedObjectsInSaveRequest:request cache:localNodeCache error:error];
@@ -1976,7 +1978,9 @@ static void dbsqliteRegExp(sqlite3_context *context, int argc, const char **argv
 }
 
 - (NSNumber *)maximumObjectIDInTable:(NSString *)table {
-    NSNumber *value = [objectIDCache objectForKey:table];
+    NSNumber *value = nil;
+    if(objectIDCache)
+     value = [objectIDCache objectForKey:table];
     if (value == nil) {
         NSString *string = [NSString stringWithFormat:@"SELECT MAX(__objectID) FROM %@;", table];
         sqlite3_stmt *statement = [self preparedStatementForQuery:string];
@@ -2215,27 +2219,23 @@ static void dbsqliteRegExp(sqlite3_context *context, int argc, const char **argv
     //        NSCustomSelectorPredicateOperatorType,
     //    };
     //    typedef NSUInteger NSPredicateOperatorType;
-    
-    static NSDictionary *operators = nil;
-    static dispatch_once_t token;
-    dispatch_once(&token, ^{
-        operators = @{
-                      @(NSEqualToPredicateOperatorType)              : @{ @"operator" : @"=",      @"format" : @"'%@'" },
-                      @(NSNotEqualToPredicateOperatorType)           : @{ @"operator" : @"!=",     @"format" : @"%@" },
-                      @(NSContainsPredicateOperatorType)             : @{ @"operator" : @"LIKE",   @"format" : @"%%%@%%" },
-                      @(NSBeginsWithPredicateOperatorType)           : @{ @"operator" : @"LIKE",   @"format" : @"%@%%" },
-                      @(NSEndsWithPredicateOperatorType)             : @{ @"operator" : @"LIKE",   @"format" : @"%%%@" },
-                      @(NSLikePredicateOperatorType)                 : @{ @"operator" : @"LIKE",   @"format" : @"%@" },
-                      @(NSMatchesPredicateOperatorType)              : @{ @"operator" : @"REGEXP", @"format" : @"%@" },
-                      @(NSInPredicateOperatorType)                   : @{ @"operator" : @"IN",     @"format" : @"(%@)" },
-                      @(NSLessThanPredicateOperatorType)             : @{ @"operator" : @"<",      @"format" : @"%@" },
-                      @(NSLessThanOrEqualToPredicateOperatorType)    : @{ @"operator" : @"<=",     @"format" : @"%@" },
-                      @(NSGreaterThanPredicateOperatorType)          : @{ @"operator" : @">",      @"format" : @"%@" },
-                      @(NSGreaterThanOrEqualToPredicateOperatorType) : @{ @"operator" : @">=",     @"format" : @"%@" },
-                      @(NSBetweenPredicateOperatorType)              : @{ @"operator" : @"BETWEEN",     @"format" : @"%@ AND %@" }
-                      };
-    });
-    
+  
+    operators = @{
+                  @(NSEqualToPredicateOperatorType)              : @{ @"operator" : @"=",      @"format" : @"'%@'" },
+                  @(NSNotEqualToPredicateOperatorType)           : @{ @"operator" : @"!=",     @"format" : @"%@" },
+                  @(NSContainsPredicateOperatorType)             : @{ @"operator" : @"LIKE",   @"format" : @"%%%@%%" },
+                  @(NSBeginsWithPredicateOperatorType)           : @{ @"operator" : @"LIKE",   @"format" : @"%@%%" },
+                  @(NSEndsWithPredicateOperatorType)             : @{ @"operator" : @"LIKE",   @"format" : @"%%%@" },
+                  @(NSLikePredicateOperatorType)                 : @{ @"operator" : @"LIKE",   @"format" : @"%@" },
+                  @(NSMatchesPredicateOperatorType)              : @{ @"operator" : @"REGEXP", @"format" : @"%@" },
+                  @(NSInPredicateOperatorType)                   : @{ @"operator" : @"IN",     @"format" : @"(%@)" },
+                  @(NSLessThanPredicateOperatorType)             : @{ @"operator" : @"<",      @"format" : @"%@" },
+                  @(NSLessThanOrEqualToPredicateOperatorType)    : @{ @"operator" : @"<=",     @"format" : @"%@" },
+                  @(NSGreaterThanPredicateOperatorType)          : @{ @"operator" : @">",      @"format" : @"%@" },
+                  @(NSGreaterThanOrEqualToPredicateOperatorType) : @{ @"operator" : @">=",     @"format" : @"%@" },
+                  @(NSBetweenPredicateOperatorType)              : @{ @"operator" : @"BETWEEN",     @"format" : @"%@ AND %@" }
+                  };
+  
     NSString *query = @"";
     NSMutableArray *bindings = [NSMutableArray array];
     
