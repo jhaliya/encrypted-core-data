@@ -456,7 +456,7 @@ static NSString * const EncryptedStoreMetadataTableName = @"meta";
             [allProperties addObject:property];
         }];
         sqlite3_finalize(statement);
-        __unsafe_unretained NSIncrementalStoreNode *node = [[CMDIncrementalStoreNode alloc]
+        NSIncrementalStoreNode *node = [[CMDIncrementalStoreNode alloc]
                                         initWithObjectID:objectID
                                         withValues:dictionary
                                         version:1
