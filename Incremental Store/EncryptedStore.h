@@ -1,4 +1,4 @@
-// 
+//
 // EncryptedStore.h
 //
 // Copyright 2012 - 2014 The MITRE Corporation, All Rights Reserved.
@@ -10,9 +10,9 @@
 #import <CoreData/CoreData.h>
 
 typedef struct _options {
-    char * passphrase;
-    char * database_location;
-    int * cache_size;
+  char * passphrase;
+  char * database_location;
+  int * cache_size;
 } EncryptedStoreOptions;
 
 extern NSString * const EncryptedStoreType;
@@ -24,15 +24,21 @@ extern NSString * const EncryptedStoreCacheSize;
 
 typedef NS_ENUM(NSInteger, EncryptedStoreError)
 {
-    EncryptedStoreErrorIncorrectPasscode = 6000
+  EncryptedStoreErrorIncorrectPasscode = 6000
 };
 
 @interface EncryptedStore : NSIncrementalStore
-+ (NSPersistentStoreCoordinator *)makeStoreWithOptions:(NSDictionary *)options managedObjectModel:(NSManagedObjectModel *)objModel;
-+ (NSPersistentStoreCoordinator *)makeStoreWithStructOptions:(EncryptedStoreOptions *) options managedObjectModel:(NSManagedObjectModel *)objModel;
-+ (NSPersistentStoreCoordinator *)makeStore:(NSManagedObjectModel *) objModel
-                                   passcode:(NSString *) passcode;
++ (NSPersistentStoreCoordinator *)makeStoreWithOptions:(NSDictionary *)options managedObjectModel:(NSManagedObjectModel *)objModel withSqllite:(NSString *) dbName;
 
+//+ (NSPersistentStoreCoordinator *)makeStoreWithStructOptions:(EncryptedStoreOptions *) options managedObjectModel:(NSManagedObjectModel *)objModel;
+
++ (NSPersistentStoreCoordinator *)makeStoreWithStructOptions:(EncryptedStoreOptions *) options managedObjectModel:(NSManagedObjectModel *)objModel withSqllite:(NSString *) dbName;
+
+//+ (NSPersistentStoreCoordinator *)makeStore:(NSManagedObjectModel *) objModel
+//                                   passcode:(NSString *) passcode;
++ (NSPersistentStoreCoordinator *)makeStore:(NSManagedObjectModel *)objModel
+                                   passcode:(NSString *)passcode
+                                withSqllite:(NSString *) dbName;
 
 - (NSNumber *)maximumObjectIDInTable:(NSString *)table;
 - (NSDictionary *)whereClauseWithFetchRequest:(NSFetchRequest *)request;
